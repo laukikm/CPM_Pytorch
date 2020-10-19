@@ -1,17 +1,20 @@
 [data]
-train_data_dir  = /home/haoyum/UCIHand/train/train_data
+train_data_dir  = C:\Users\lauki\Car DataGen Trial\Final Data\mustang\
 train_label_dir = /home/haoyum/UCIHand/train/train_label
-save_dir        = ckpt/
+save_dir        = C:\Users\lauki\Car DataGen Trial\Python Scripts\CPM_Pytorch\models
 
-test_data_dir  = /home/haoyum/UCIHand/test/test_data
+test_data_dir  = C:\Users\lauki\Car DataGen Trial\Final Data\golf
 test_label_dir = /home/haoyum/UCIHand/test/test_label
+
+model_save_dir = C:\Users\lauki\Car DataGen Trial\Python Scripts\CPM_Pytorch\models\
 
 
 [training]
 learning_rate   = 8e-6
-batch_size      = 16
+batch_size      = 4
 epochs          = 50
 begin_epoch     = 0
+n_keypoints	= 18
 
 
 [test]

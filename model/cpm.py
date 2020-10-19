@@ -259,5 +259,5 @@ if __name__ == "__main__":
     x = torch.randn(2, 3, 368, 368)  # batch size = 2
     c = torch.randn(2, 368, 368)  # batch size = 2
     y = net(x, c)
-    print y.shape  # torch (2, 6, 21, 45, 45)
+    print( y.shape)  # torch (2, 6, 21, 45, 45)
 

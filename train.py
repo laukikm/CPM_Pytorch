@@ -2,54 +2,58 @@
 
 
 """
-
-from data_loader.uci_hand_data import UCIHandPoseDataset as Mydata
+from data_loader.dataLoader import CarDataset as Mydata
 from model.cpm import CPM
-from src.util import *
-
+from src.util import heatmap_image,save_images,PCK
 
 import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import ConfigParser
+import configparser
 
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-
+#import gc
+#gc.enable()
 # multi-GPU
-device_ids = [0, 1, 2, 3]
+device_ids = [0]
 
 # *********************** hyper parameter  ***********************
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read('conf.text')
 train_data_dir = config.get('data', 'train_data_dir')
-train_label_dir = config.get('data', 'train_label_dir')
+model_save_dir=config.get('data', 'model_save_dir')
+
 save_dir = config.get('data', 'save_dir')
 
 learning_rate = config.getfloat('training', 'learning_rate')
 batch_size = config.getint('training', 'batch_size')
 epochs = config.getint('training', 'epochs')
 begin_epoch = config.getint('training', 'begin_epoch')
+n_keypoints=config.getint('training', 'n_keypoints')
 
 cuda = torch.cuda.is_available()
+
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
 
 
 # *********************** Build dataset ***********************
-train_data = Mydata(data_dir=train_data_dir, label_dir=train_label_dir)
-print 'Train dataset total number of images sequence is ----' + str(len(train_data))
+train_data = Mydata(data_dir=train_data_dir)
+
+
+print ('Train dataset total number of images sequence is ----' + str(len(train_data)))
 
 # Data Loader
 train_dataset = DataLoader(train_data, batch_size=batch_size, shuffle=True)
 
 # *********************** Build model ***********************
 
-net = CPM(out_c=21)
+net = CPM(out_c=n_keypoints)
 
 if cuda:
     net = net.cuda(device_ids[0])
@@ -57,7 +61,7 @@ if cuda:
 
 
 if begin_epoch > 0:
-    save_path = 'ckpt/model_epoch' + str(begin_epoch) + '.pth'
+    save_path = model_save_dir + str(begin_epoch) + '.pth'
     state_dict = torch.load(save_path)
     net.load_state_dict(state_dict)
 
@@ -69,8 +73,10 @@ def train():
 
     net.train()
     for epoch in range(begin_epoch, epochs + 1):
-        print 'epoch....................' + str(epoch)
+        print ('epoch....................' + str(epoch))
+        
         for step, (image, label_map, center_map, imgs) in enumerate(train_dataset):
+            
             image = Variable(image.cuda() if cuda else image)                   # 4D Tensor
             # Batch_size  *  3  *  width(368)  *  height(368)
 
@@ -84,28 +90,37 @@ def train():
             # Batch_size  *  width(368) * height(368)
 
             optimizer.zero_grad()
-            pred_6 = net(image, center_map)  # 5D tensor:  batch size * stages * 21 * 45 * 45
+            pred_6 = net(image, center_map)  # 5D tensor:  batch size * stages * 21 * 45 * 45 #This is huge
 
             # ******************** calculate loss of each joints ********************
             loss = criterion(pred_6, label_map)
 
             # backward
             loss.backward()
-            optimizer.step()
+            loss=loss.detach()
+            #import ipdb
+            #ipdb.set_trace()
+            
+            optimizer.step() #Not using SGD
+            #gc.collect()
 
             if step % 10 == 0:
-                print '--step .....' + str(step)
-                print '--loss ' + str(float(loss.data[0]))
+                print ('--step .....' + str(step))
+                print ('--loss ',loss.item()*10000)
+                gb_factor=10**9
+                print('--gpu memory=',torch.cuda.memory_allocated()/gb_factor)
 
-            if step % 200 == 0:
-                save_images(label_map[:, 5, :, :, :], pred_6[:, 5, :, :, :], step, epoch, imgs)
+            #if step % 200 == 0:
+            #    save_images(label_map[:, 5, :, :, :], pred_6[:, 5, :, :, :], step, epoch, imgs)
 
         if epoch % 5 == 0:
             torch.save(net.state_dict(), os.path.join(save_dir, 'model_epoch{:d}.pth'.format(epoch)))
+        
+            #Delete tensors from memory
+            #del image,label_map,center_map,pred_6
 
-    print 'train done!'
-
-
+    print ('train done!')
+    
 if __name__ == '__main__':
     train()
 
