@@ -1,7 +1,7 @@
 [data]
 train_data_dir  = C:\Users\lauki\Car DataGen Trial\Final Data\mustang\
 train_label_dir = /home/haoyum/UCIHand/train/train_label
-save_dir        = C:\Users\lauki\Car DataGen Trial\Python Scripts\CPM_Pytorch\models
+save_dir        = models/
 
 test_data_dir  = C:\Users\lauki\Car DataGen Trial\Final Data\golf
 test_label_dir = /home/haoyum/UCIHand/test/test_label

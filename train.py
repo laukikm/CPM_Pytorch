@@ -15,28 +15,29 @@ import configparser
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-#import gc
-#gc.enable()
-# multi-GPU
-device_ids = [0]
+online=False
 
-# *********************** hyper parameter  ***********************
-
-config = configparser.ConfigParser()
-config.read('conf.text')
-train_data_dir = config.get('data', 'train_data_dir')
-model_save_dir=config.get('data', 'model_save_dir')
-
-save_dir = config.get('data', 'save_dir')
-
-learning_rate = config.getfloat('training', 'learning_rate')
-batch_size = config.getint('training', 'batch_size')
-epochs = config.getint('training', 'epochs')
-begin_epoch = config.getint('training', 'begin_epoch')
-n_keypoints=config.getint('training', 'n_keypoints')
-
+if not online:
+    #import gc
+    #gc.enable()
+    # multi-GPU
+    device_ids = [0]
+    # *********************** hyper parameter  ***********************
+    
+    config = configparser.ConfigParser()
+    config.read('conf.text')
+    train_data_dir = config.get('data', 'train_data_dir')
+    model_save_dir=config.get('data', 'model_save_dir')
+    
+    save_dir = config.get('data', 'save_dir')
+    
+    learning_rate = config.getfloat('training', 'learning_rate')
+    batch_size = config.getint('training', 'batch_size')
+    epochs = config.getint('training', 'epochs')
+    begin_epoch = config.getint('training', 'begin_epoch')
+    n_keypoints=config.getint('training', 'n_keypoints')
+    
 cuda = torch.cuda.is_available()
-
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
