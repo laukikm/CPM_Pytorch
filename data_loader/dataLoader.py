@@ -37,6 +37,12 @@ from src.util import *
 
 import glob
 
+def human_sort_key(name_string):
+    num_string=''
+    for char in name_string:
+        if(ord(char)>=48 and ord(char)<=57): #Only numeric numbers added
+            num_string+=char
+    return int(num_string)
 class CarDataset(Dataset):
 
     def __init__(self, data_dir, n_keypoints=18, transform=None, sigma=1):
@@ -44,8 +50,8 @@ class CarDataset(Dataset):
         self.width = 368
         
 
-        self.images_dir=sorted(glob.glob(data_dir+"Images/*.PNG")) #It's okay if they aren't in the human order
-        self.label_dir = sorted(glob.glob(data_dir+"Labels/*.txt"))# But they need to be in the same order
+        self.images_dir=sorted(glob.glob(data_dir+"Images/*.PNG"),key=human_sort_key) #It's okay if they aren't in the human order
+        self.label_dir = sorted(glob.glob(data_dir+"Labels/*.txt"),key=human_sort_key)# But they need to be in the same order
 
         self.transform = transform
         self.n_keypoints = n_keypoints  # 21 heat maps
