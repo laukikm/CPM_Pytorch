@@ -16,16 +16,16 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
 online=False
-
+config = configparser.ConfigParser()
+device_ids = [0]  
+# *********************** hyper parameter  ***********************
 if not online:
-    #import gc
-    #gc.enable()
     # multi-GPU
-    device_ids = [0]
-    # *********************** hyper parameter  ***********************
-    
-    config = configparser.ConfigParser()
     config.read('conf.text')
+
+if online:
+    config.read('conf_online.text')
+
     train_data_dir = config.get('data', 'train_data_dir')
     model_save_dir=config.get('data', 'model_save_dir')
     
@@ -38,6 +38,7 @@ if not online:
     n_keypoints=config.getint('training', 'n_keypoints')
     
 cuda = torch.cuda.is_available()
+ 
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)

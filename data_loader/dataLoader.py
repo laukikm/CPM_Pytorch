@@ -37,19 +37,18 @@ from src.util import *
 
 import glob
 
-
 class CarDataset(Dataset):
 
-    def __init__(self, data_dir, keypoints=18, transform=None, sigma=1):
+    def __init__(self, data_dir, n_keypoints=18, transform=None, sigma=1):
         self.height = 368
         self.width = 368
         
 
-        self.images_dir=sorted(glob.glob(data_dir+"Images/*.PNG"),key=os.path.getmtime)
-        self.label_dir = sorted(glob.glob(data_dir+"Labels/*.txt"),key=os.path.getmtime)
+        self.images_dir=sorted(glob.glob(data_dir+"Images/*.PNG")) #It's okay if they aren't in the human order
+        self.label_dir = sorted(glob.glob(data_dir+"Labels/*.txt"))# But they need to be in the same order
 
         self.transform = transform
-        self.keypoints = keypoints  # 21 heat maps
+        self.n_keypoints = n_keypoints  # 21 heat maps
         self.sigma = sigma  # gaussian center heat map sigma
 
         #self.gen_imgs_dir()
@@ -78,7 +77,7 @@ class CarDataset(Dataset):
         :param idx:
         :return:
         images          3D Tensor      3                *   height(368)      *   weight(368)
-        label_map       3D Tensor      (keypoints + 1)     *   label_size(45)   *   label_size(45)
+        label_map       3D Tensor      (n_keypoints + 1)     *   label_size(45)   *   label_size(45)
         center_map      3D Tensor      1                *   height(368)      *   weight(368)
         """
 
@@ -101,7 +100,7 @@ class CarDataset(Dataset):
         label = np.array([labels['x'],labels['y'] ])       # 0005  list       21 * 2
         label=np.transpose(label)   #n_keypointsx2 array
         
-        lbl = self.genLabelMap(label, label_size=label_size, keypoints=self.keypoints, ratio_x=ratio_x, ratio_y=ratio_y)
+        lbl = self.genLabelMap(label, label_size=label_size, n_keypoints=self.n_keypoints, ratio_x=ratio_x, ratio_y=ratio_y)
         label_maps = torch.from_numpy(lbl)
 
         # generate the Gaussian heat map
@@ -125,22 +124,22 @@ class CarDataset(Dataset):
         D2 = (gridx - x) ** 2 + (gridy - y) ** 2
         return np.exp(-D2 / 2.0 / sigma / sigma)  # numpy 2d
 
-    def genLabelMap(self, label, label_size, keypoints, ratio_x, ratio_y):
+    def genLabelMap(self, label, label_size, n_keypoints, ratio_x, ratio_y):
         """
         generate label heat map
-        :param label:               list            21 * 2
+        :param label:               list            n_keypoints * 2
         :param label_size:          int             45
-        :param keypoints:              int             21
+        :param n_keypoints:              int             21
         :param ratio_x:             float           1.4375
         :param ratio_y:             float           1.4375
-        :return:  heatmap           numpy           keypoints * boxsize/stride * boxsize/stride
+        :return:  heatmap           numpy           n_keypoints * boxsize/stride * boxsize/stride
         """
         # initialize
-        label_maps = np.zeros((keypoints, label_size, label_size))
+        label_maps = np.zeros((n_keypoints, label_size, label_size))
         background = np.zeros((label_size, label_size))
 
         # each joint
-        for i in range(len(label)):
+        for i in range(n_keypoints):
             lbl = label[i]                      # [x, y]
             x = lbl[0] * ratio_x / 8.0          # modify the label
             y = lbl[1] * ratio_y / 8.0
@@ -148,7 +147,7 @@ class CarDataset(Dataset):
             background += heatmap               # numpy
             label_maps[i, :, :] = np.transpose(heatmap)  # !!!
 
-        return label_maps  # numpy           label_size * label_size * (keypoints + 1)
+        return label_maps  # numpy           label_size * label_size * (n_keypoints + 1)
 
 
 # test case

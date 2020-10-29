@@ -55,7 +55,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import torchvision.transforms as transforms
 
-def heatmap_image(img, label,save_dir='/home/haoyum/Tdata/heat_maps/'):
+def heatmap_image(img, label,save_dir='/home/haoyum/Tdata/heat_maps/',n_keypoints=18):
     """
     draw heat map of each joint
     :param img:             a PIL Image
@@ -75,7 +75,7 @@ def heatmap_image(img, label,save_dir='/home/haoyum/Tdata/heat_maps/'):
     y2 = im_size
 
     target = Image.new('RGB', (7 * im_size, 3 * im_size))
-    for i in range(21):
+    for i in range(n_keypoints):
         heatmap = label[i, :, :]    # heat map for single one joint
 
         # remove white margin
@@ -152,7 +152,7 @@ def Tests_save_label(predict_heatmaps, step, imgs):
 
 # ************************************ Build dataset ************************************
 test_data = Mydata(data_dir=predict_data_dir)
-print 'Test dataset total number of images is ----' + str(len(test_data))
+print ('Test dataset total number of images is ----' + str(len(test_data)))
 
 # Data Loader
 test_dataset = DataLoader(test_data, batch_size=batch_size, shuffle=True)
@@ -171,7 +171,7 @@ net.load_state_dict(state_dict)
 
 # **************************************** test all images ****************************************
 
-print '********* test data *********'
+print ('********* test data *********')
 net.eval()
 
 for step, (image, center_map, imgs) in enumerate(test_dataset):

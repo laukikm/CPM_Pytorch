@@ -236,7 +236,7 @@ class CPM(nn.Module):
                                          pool_center_lower_map)  # result of stage 6
 
         return torch.stack([conv7_stage1_map, Mconv5_stage2_map, Mconv5_stage3_map,
-                            Mconv5_stage4_map, Mconv5_stage5_map, Mconv5_stage6_map], dim=1)
+                            Mconv5_stage4_map, Mconv5_stage5_map, Mconv5_stage6_map], dim=1) #All these are the same size as the label map
 
 
 def mse_loss(pred_6, target, weight=None, weighted_loss=False, size_average=True):
